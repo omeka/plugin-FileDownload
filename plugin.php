@@ -36,7 +36,7 @@ class FileDownloadControllerPlugin extends Zend_Controller_Plugin_Abstract
             if ($file) {
                 $response->setHeader('Content-Type', $file->mime_browser)
                          ->setHeader('Content-Disposition', 'attachment; filename="' . $file->original_filename . '"')
-                         ->setBody(file_get_contents(WEB_FILES . '/' . $file->archive_filename))
+                         ->setBody(file_get_contents(FILES_DIR . '/' . $file->archive_filename))
                          ->sendResponse();
             }
         }
