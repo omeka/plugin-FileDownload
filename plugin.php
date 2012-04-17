@@ -1,4 +1,9 @@
 <?php
+/**
+ * For various reasons Omeka changes file names during their initial upload, 
+ * resulting in unnecessarily obfuscated names during download. This plugin 
+ * provides a way to serve files using their original name.
+ */
 class FileDownloadPlugin extends Omeka_Plugin_Abstract
 {
     protected $_hooks = array('initialize');
@@ -13,11 +18,14 @@ class FileDownloadControllerPlugin extends Zend_Controller_Plugin_Abstract
 {
     /**
      * Before dispatch, catch requests to the nonexistent files/download action 
-     * and initiate a file download using the file's original name.
+     * and initiate a download using the file's original name.
      * 
      * FilesController::checkUserPermissions() automatically validates the file 
      * ID during controller initialization, which happens before preDispatch() 
      * is called. We let that do the validation work for us.
+     * 
+     * file_get_contents() loads the entire file into memory, which risks 
+     * exceeding memory allocation limits for large files.
      */
     public function preDispatch($request)
     {
@@ -28,9 +36,9 @@ class FileDownloadControllerPlugin extends Zend_Controller_Plugin_Abstract
             if ($file) {
                 $response->setHeader('Content-Type', $file->mime_browser)
                          ->setHeader('Content-Disposition', 'attachment; filename="' . $file->original_filename . '"')
-                         ->setBody(file_get_contents(WEB_FILES . '/' . $file->archive_filename));
+                         ->setBody(file_get_contents(WEB_FILES . '/' . $file->archive_filename))
+                         ->sendResponse();
             }
-            $response->sendResponse();
         }
     }
 }
